@@ -1,8 +1,38 @@
-import { searchDuckDuckGo, searchTavily, searchGoogle, searchAll } from './apiProxy';
-
-// ==================== FALLBACK DATABASE ====================
-const FALLBACK_CONTENT = {
+export const fallbackTopics = {
   'nikola tesla': {
+    title: 'Nikola Tesla',
+    icon: '⚡',
+    subtitle: 'The visionary inventor who electrified the world',
+    overview: `Nikola Tesla was a Serbian-American inventor, electrical engineer, mechanical engineer, and futurist best known for his contributions to the design of the modern alternating current (AC) electricity supply system.
+
+Born in 1856 in Smiljan, Croatia, Tesla showed early signs of brilliance. He studied electrical engineering and worked briefly with Thomas Edison before striking out on his own. His rivalry with Edison over AC vs DC power became legendary.
+
+Tesla's inventions include the Tesla coil, the induction motor, wireless transmission of energy, and the AC polyphase system. He held over 300 patents worldwide and envisioned a world powered by free wireless electricity.
+
+Despite his brilliance, Tesla died in relative obscurity in 1943, leaving behind a legacy that would later be recognized as visionary. Today, he is celebrated as one of history's greatest inventors.`,
+    concepts: [
+      { name: 'Alternating Current', description: 'Tesla developed the AC system that became the standard for electrical power transmission worldwide.' },
+      { name: 'Tesla Coil', description: 'A resonant transformer circuit used to produce high-voltage, low-current, high-frequency alternating-current electricity.' },
+      { name: 'Induction Motor', description: 'Tesla invented the induction motor, which uses alternating current to produce mechanical energy.' },
+      { name: 'Wireless Transmission', description: 'Tesla demonstrated wireless transmission of energy and envisioned a world powered without wires.' },
+      { name: 'AC Polyphase System', description: 'Tesla\'s system for generating, transmitting, and distributing AC power efficiently over long distances.' }
+    ],
+    facts: [
+      'Tesla had over 300 patents worldwide.',
+      'He worked with Thomas Edison early in his career and had a famous rivalry with him.',
+      'The Tesla unit of magnetic flux density is named after him.',
+      'Tesla died in New York City on January 7, 1943.',
+      'He spoke eight languages fluently.',
+      'Tesla was a vegetarian in his later years.',
+      'He refused the Nobel Prize for physics in 1915.',
+      'Tesla envisioned wireless power transmission and built the Wardenclyffe Tower in 1901.'
+    ],
+    articles: [
+      { title: 'The Life and Work of Nikola Tesla', url: 'https://www.britannica.com/biography/Nikola-Tesla', source: 'Britannica' },
+      { title: 'Nikola Tesla: The Father of Modern Electricity', url: 'https://www.history.com/topics/inventions/nikola-tesla', source: 'History.com' }
+    ]
+  },
+  'nikola tesla biography': {
     title: 'Nikola Tesla',
     icon: '⚡',
     subtitle: 'The visionary inventor who electrified the world',
@@ -83,7 +113,8 @@ The legacy of ancient Egypt has had a profound impact on world culture, influenc
       'The Rosetta Stone was key to deciphering Egyptian hieroglyphics in 1822.',
       'Ancient Egyptians had a 365-day calendar with 12 months of 30 days.',
       'Egyptian women had many legal rights, including owning property and initiating divorce.',
-      'The ancient Egyptians practiced dental surgery and had advanced medical knowledge.'
+      'The ancient Egyptians practiced dental surgery and had advanced medical knowledge.',
+      'The Nile River is over 6,600 kilometers long, flowing through 11 countries.'
     ]
   },
   'artificial intelligence': {
@@ -187,6 +218,30 @@ Quantum physics reveals a strange world where particles can exist in multiple st
       'Quantum gravity remains one of the biggest unsolved problems in physics.'
     ]
   },
+  'mariana trench': {
+    title: 'Mariana Trench',
+    icon: '🌊',
+    subtitle: 'The deepest point on Earth',
+    overview: `The Mariana Trench is the deepest oceanic trench on Earth, located in the western Pacific Ocean. It reaches a maximum depth of approximately 11,034 meters (36,201 feet) at the Challenger Deep.
+
+The trench is formed by the subduction of the Pacific Plate beneath the Mariana Plate. This process creates a crescent-shaped scar on the ocean floor that stretches about 2,550 kilometers (1,580 miles).
+
+Despite the extreme conditions of crushing pressure, freezing temperatures, and complete darkness, life thrives in the Mariana Trench. Species like the Mariana snailfish, amphipods, and xenophyophores have adapted to survive in this extreme environment.`,
+    concepts: [
+      { name: 'Challenger Deep', description: 'The deepest known point of the Mariana Trench, reaching approximately 11,000 meters below sea level.' },
+      { name: 'Subduction Zone', description: 'The area where one tectonic plate is forced beneath another, creating deep oceanic trenches.' },
+      { name: 'Hadopelagic Zone', description: 'The deepest layer of the ocean, from 6,000 to 11,000 meters, characterized by extreme pressure and darkness.' },
+      { name: 'Pressure Adaptation', description: 'The biological adaptations that allow deep-sea creatures to survive extreme pressures of up to 1,000 atmospheres.' }
+    ],
+    facts: [
+      'The Mariana Trench is deeper than Mount Everest is tall by over 2 kilometers.',
+      'Only a handful of people have visited the bottom of the Mariana Trench.',
+      'The pressure at the bottom is about 1,000 times atmospheric pressure at sea level.',
+      'The trench was first explored by the submersible Trieste in 1960.',
+      'James Cameron made a solo descent to the trench in 2012.',
+      'The trench contains high levels of microplastics and human-made pollution.'
+    ]
+  },
   'mars': {
     title: 'Mars',
     icon: '🔴',
@@ -211,374 +266,7 @@ The possibility of life on Mars has captivated scientists and the public for gen
       'NASA\'s Perseverance rover landed on Mars in February 2021.',
       'Mars has the largest dust storms in the Solar System.'
     ]
-  },
-  'mariana trench': {
-    title: 'Mariana Trench',
-    icon: '🌊',
-    subtitle: 'The deepest point on Earth',
-    overview: `The Mariana Trench is the deepest oceanic trench on Earth, located in the western Pacific Ocean. It reaches a maximum depth of approximately 11,034 meters (36,201 feet) at the Challenger Deep.
-
-The trench is formed by the subduction of the Pacific Plate beneath the Mariana Plate. This process creates a crescent-shaped scar on the ocean floor that stretches about 2,550 kilometers (1,580 miles).
-
-Despite the extreme conditions of crushing pressure, freezing temperatures, and complete darkness, life thrives in the Mariana Trench. Species like the Mariana snailfish, amphipods, and xenophyophores have adapted to survive in this extreme environment.`,
-    concepts: [
-      { name: 'Challenger Deep', description: 'The deepest known point of the Mariana Trench, reaching approximately 11,000 meters below sea level.' },
-      { name: 'Subduction Zone', description: 'The area where one tectonic plate is forced beneath another, creating deep oceanic trenches.' },
-      { name: 'Hadopelagic Zone', description: 'The deepest layer of the ocean, from 6,000 to 11,000 meters, characterized by extreme pressure and darkness.' },
-      { name: 'Pressure Adaptation', description: 'The biological adaptations that allow deep-sea creatures to survive extreme pressures of up to 1,000 atmospheres.' }
-    ],
-    facts: [
-      'The Mariana Trench is deeper than Mount Everest is tall by over 2 kilometers.',
-      'Only a handful of people have visited the bottom of the Mariana Trench.',
-      'The pressure at the bottom is about 1,000 times atmospheric pressure at sea level.',
-      'The trench was first explored by the submersible Trieste in 1960.',
-      'James Cameron made a solo descent to the trench in 2012.'
-    ]
-  },
-  'dinosaurs': {
-    title: 'Dinosaurs',
-    icon: '🦕',
-    subtitle: 'The giants that ruled the Earth',
-    overview: `Dinosaurs were a diverse group of reptiles that first appeared during the Triassic period, approximately 245 million years ago. They became the dominant terrestrial vertebrates for over 160 million years, until the Cretaceous-Paleogene extinction event 66 million years ago.
-
-The term "dinosaur" was coined by Sir Richard Owen in 1842. Since then, over 1,000 species have been identified, ranging from the small, bird-like Compsognathus to the massive, long-necked Argentinosaurus.
-
-Dinosaurs are divided into two main orders: Saurischia (lizard-hipped) and Ornithischia (bird-hipped). Some dinosaurs, like the Tyrannosaurus rex, were apex predators, while others, like the Stegosaurus, were herbivores with elaborate armor and displays.
-
-Modern birds are considered the only surviving lineage of dinosaurs, making them our closest living connection to this ancient world.`,
-    concepts: [
-      { name: 'Theropods', description: 'A group of bipedal carnivorous dinosaurs that includes Tyrannosaurus rex and Velociraptor, which are closely related to modern birds.' },
-      { name: 'Sauropods', description: 'Giant, long-necked herbivorous dinosaurs like Brachiosaurus and Diplodocus that were the largest animals to ever walk on land.' },
-      { name: 'Cretaceous-Paleogene Extinction', description: 'The mass extinction event 66 million years ago that wiped out all non-avian dinosaurs, likely caused by an asteroid impact.' },
-      { name: 'Fossils', description: 'Preserved remains or traces of ancient organisms that provide evidence of dinosaur existence and evolution.' },
-      { name: 'Paleontology', description: 'The scientific study of fossils, including dinosaurs, that helps us understand the history of life on Earth.' }
-    ],
-    facts: [
-      'The largest dinosaur, Argentinosaurus, weighed up to 100 tons and was over 30 meters long.',
-      'The smallest dinosaur, Compsognathus, was only the size of a chicken.',
-      'Some dinosaurs, like the Tyrannosaurus rex, could live up to 30 years.',
-      'Velociraptors were actually covered in feathers, not scales.',
-      'The closest living relatives of dinosaurs are birds.',
-      'The first dinosaur fossil was discovered in the 19th century, but ancient civilizations may have found fossils earlier.'
-    ]
   }
 };
 
-// ==================== HELPERS ====================
-const cleanText = (text) => {
-  if (!text) return '';
-  return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-};
-
-const getSentences = (text, count = 3) => {
-  if (!text) return '';
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 30);
-  return sentences.slice(0, count).join('. ') + '.';
-};
-
-
-// ==================== PARSERS ====================
-const parseDuckDuckGo = (data) => {
-  let overview = '';
-  const concepts = [];
-  const facts = [];
-  const articles = [];
-
-  if (data.AbstractText) {
-    overview = getSentences(data.AbstractText, 4);
-  }
-
-  if (data.RelatedTopics) {
-    data.RelatedTopics.forEach(topic => {
-      if (topic.Text) {
-        const text = cleanText(topic.Text);
-        const parts = text.split(' - ');
-        const title = parts[0]?.trim() || 'Related';
-        const description = parts.slice(1).join(' - ').trim() || text;
-        if (description.length > 30 && concepts.length < 6) {
-          concepts.push({ name: title.slice(0, 45), description: getSentences(description, 2) });
-        }
-        if (text.length > 40 && facts.length < 10) {
-          facts.push(getSentences(text, 1));
-        }
-        if (topic.url && articles.length < 6) {
-          articles.push({ title: title.slice(0, 60), url: topic.url, source: 'DuckDuckGo' });
-        }
-      }
-    });
-  }
-
-  if (data.Infobox) {
-    data.Infobox.content.forEach(item => {
-      if (item.label && item.value && facts.length < 12) {
-        const cleanValue = cleanText(item.value);
-        if (cleanValue.length > 10) facts.push(`${item.label}: ${cleanValue}`);
-      }
-    });
-  }
-
-  return { overview, concepts, facts, articles };
-};
-
-const parseTavily = (data) => {
-  const concepts = [];
-  const facts = [];
-  const articles = [];
-
-  if (data.results) {
-    data.results.forEach(r => {
-      const content = cleanText(r.content || r.snippet || '');
-      const title = cleanText(r.title || '');
-      if (content.length > 50 && concepts.length < 6) {
-        concepts.push({
-          name: title.slice(0, 45) || `Concept ${concepts.length + 1}`,
-          description: getSentences(content, 2)
-        });
-      }
-      if (content.length > 40) {
-        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 30);
-        sentences.slice(0, 2).forEach(s => {
-          if (facts.length < 15) facts.push(s.trim() + '.');
-        });
-      }
-      if (r.url && articles.length < 6) {
-        articles.push({ title: title.slice(0, 60) || 'Article', url: r.url, source: 'Tavily' });
-      }
-    });
-  }
-
-  return { concepts, facts, articles };
-};
-
-const parseGoogle = (items) => {
-  const facts = [];
-  const articles = [];
-  items.forEach(item => {
-    const title = cleanText(item.title || '');
-    const snippet = cleanText(item.snippet || '');
-    if (snippet.length > 30) {
-      const sentences = snippet.split(/[.!?]+/).filter(s => s.trim().length > 30);
-      sentences.slice(0, 2).forEach(s => {
-        if (facts.length < 15) facts.push(s.trim() + '.');
-      });
-    }
-    if (item.link && articles.length < 6) {
-      articles.push({ title: title.slice(0, 60) || 'Article', url: item.link, source: 'Google' });
-    }
-  });
-  return { facts, articles };
-};
-
-// ==================== GET FALLBACK FROM DATABASE ====================
-const getFallbackFromDatabase = (topicTitle) => {
-  const normalizedTitle = topicTitle.toLowerCase().trim();
-  
-  // Exact match
-  if (FALLBACK_CONTENT[normalizedTitle]) {
-    return FALLBACK_CONTENT[normalizedTitle];
-  }
-  
-  // Partial match
-  const keys = Object.keys(FALLBACK_CONTENT);
-  for (const key of keys) {
-    if (normalizedTitle.includes(key) || key.includes(normalizedTitle)) {
-      return FALLBACK_CONTENT[key];
-    }
-  }
-  
-  return null;
-};
-
-// ==================== GENERATE FALLBACK CONTENT ====================
-const generateGenericFallback = (topicTitle) => {
-  return {
-    title: topicTitle,
-    icon: '🔍',
-    subtitle: 'Explore this topic',
-    overview: `${topicTitle} is a fascinating topic that encompasses important concepts, discoveries, and historical significance. Research continues to reveal new insights and understanding.\n\nThis topic has been studied extensively by researchers and scholars around the world. The key concepts and facts presented here provide a foundation for deeper exploration.`,
-    concepts: [
-      { name: 'Core Concepts', description: `Key ideas and principles related to ${topicTitle}.` },
-      { name: 'Historical Significance', description: `Understanding the importance and impact of ${topicTitle}.` },
-      { name: 'Modern Understanding', description: `Current perspectives and research on ${topicTitle}.` }
-    ],
-    facts: [
-      `${topicTitle} has been studied extensively by researchers around the world.`,
-      `Many discoveries about ${topicTitle} have shaped our understanding of this field.`,
-      `The study of ${topicTitle} continues to evolve with new research and technologies.`,
-      `${topicTitle} has significant implications for our understanding of the world.`,
-      `Researchers continue to make new discoveries related to ${topicTitle}.`
-    ]
-  };
-};
-
-// ==================== MAIN FUNCTION ====================
-export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
-  // Check cache first
-  const cached = localStorage.getItem(`topic_${topicId}`);
-  if (cached) {
-    try {
-      return JSON.parse(cached);
-    } catch (e) {
-      console.log('Cache parse error');
-    }
-  }
-
-  console.log('Searching for:', topicTitle);
-  if (onProgress) onProgress('🔍 Researching...');
-
-  let overview = '';
-  let concepts = [];
-  let facts = [];
-  let articles = [];
-
-  try {
-    // Try APIs with short timeout
-    const [duckData, tavilyData, googleItems] = await Promise.all([
-      searchDuckDuckGo(topicTitle),
-      searchTavily(topicTitle),
-      searchGoogle(topicTitle)
-    ]);
-
-    // Process DuckDuckGo
-    if (duckData) {
-      const parsed = parseDuckDuckGo(duckData);
-      if (parsed.overview) overview = parsed.overview;
-      parsed.concepts.forEach(c => { if (concepts.length < 6) concepts.push(c); });
-      parsed.facts.forEach(f => { if (facts.length < 10) facts.push(f); });
-      parsed.articles.forEach(a => { if (articles.length < 6) articles.push(a); });
-    }
-
-    // Process Tavily
-    if (tavilyData) {
-      if (tavilyData.answer && !overview) {
-        overview = getSentences(cleanText(tavilyData.answer), 4);
-      }
-      const parsed = parseTavily(tavilyData);
-      parsed.concepts.forEach(c => { if (concepts.length < 8) concepts.push(c); });
-      parsed.facts.forEach(f => { if (facts.length < 12) facts.push(f); });
-      parsed.articles.forEach(a => { if (articles.length < 6) articles.push(a); });
-    }
-
-    // Process Google
-    if (googleItems.length > 0) {
-      const parsed = parseGoogle(googleItems);
-      parsed.facts.forEach(f => { if (facts.length < 12) facts.push(f); });
-      parsed.articles.forEach(a => { if (articles.length < 6) articles.push(a); });
-    }
-
-    // If no content from APIs, use fallback database
-    if (!overview || overview.length < 30) {
-      console.log('No API content, using fallback database for:', topicTitle);
-      const fallback = getFallbackFromDatabase(topicTitle);
-      
-      if (fallback) {
-        const content = {
-          ...fallback,
-          title: topicTitle,
-          relatedTopics: ['Black Holes', 'Ancient Egypt', 'Artificial Intelligence', 'Deep Ocean', 'Solar System'],
-          recommendations: [{ title: 'Explore More Topics', type: 'article', description: 'Continue your journey of discovery.' }]
-        };
-        localStorage.setItem(`topic_${topicId}`, JSON.stringify(content));
-        if (onProgress) onProgress('✅ Research complete!');
-        return content;
-      }
-    }
-
-    // If we have some content, build the result
-    if (overview && overview.length > 30) {
-      // Deduplicate facts
-      const uniqueFacts = [];
-      const seenFacts = new Set();
-      facts.forEach(f => {
-        const key = f.slice(0, 60);
-        if (!seenFacts.has(key) && uniqueFacts.length < 12 && f.length > 20) {
-          seenFacts.add(key);
-          uniqueFacts.push(f);
-        }
-      });
-      facts = uniqueFacts;
-
-      if (facts.length === 0) {
-        const fallback = getFallbackFromDatabase(topicTitle);
-        if (fallback) facts = fallback.facts || [`Exploring ${topicTitle}...`];
-      }
-
-      // Deduplicate concepts
-      const uniqueConcepts = [];
-      const seenNames = new Set();
-      concepts.forEach(c => {
-        const key = c.name.toLowerCase().slice(0, 20);
-        if (!seenNames.has(key) && uniqueConcepts.length < 8 && c.description.length > 20) {
-          seenNames.add(key);
-          uniqueConcepts.push(c);
-        }
-      });
-      concepts = uniqueConcepts;
-
-      if (concepts.length === 0) {
-        const fallback = getFallbackFromDatabase(topicTitle);
-        if (fallback) concepts = fallback.concepts || [{ name: 'Core Concepts', description: `Key ideas related to ${topicTitle}.` }];
-      }
-
-      // Deduplicate articles
-      const uniqueArticles = [];
-      const seenUrls = new Set();
-      articles.forEach(a => {
-        if (!seenUrls.has(a.url) && uniqueArticles.length < 6) {
-          seenUrls.add(a.url);
-          uniqueArticles.push(a);
-        }
-      });
-      articles = uniqueArticles;
-
-      const content = {
-        title: topicTitle,
-        icon: '🔍',
-        subtitle: 'Researched from DuckDuckGo + Tavily + Google',
-        overview: overview.slice(0, 1200),
-        timeline: [],
-        concepts: concepts.slice(0, 8),
-        facts: facts.slice(0, 12),
-        articles: articles.slice(0, 6),
-        relatedTopics: ['Black Holes', 'Ancient Egypt', 'Artificial Intelligence', 'Deep Ocean', 'Solar System'],
-        recommendations: [{ title: 'Explore More Topics', type: 'article', description: 'Continue your journey of discovery.' }]
-      };
-
-      localStorage.setItem(`topic_${topicId}`, JSON.stringify(content));
-      if (onProgress) onProgress('✅ Research complete!');
-      return content;
-    }
-
-    // Final fallback - generic
-    console.log('Using generic fallback for:', topicTitle);
-    const genericContent = {
-      ...generateGenericFallback(topicTitle),
-      relatedTopics: ['Black Holes', 'Ancient Egypt', 'Artificial Intelligence', 'Deep Ocean', 'Solar System'],
-      recommendations: [{ title: 'Explore More Topics', type: 'article', description: 'Continue your journey of discovery.' }]
-    };
-    localStorage.setItem(`topic_${topicId}`, JSON.stringify(genericContent));
-    if (onProgress) onProgress('✅ Research complete!');
-    return genericContent;
-
-  } catch (error) {
-    console.error('Search error:', error);
-    const fallback = getFallbackFromDatabase(topicTitle);
-    if (fallback) {
-      const content = {
-        ...fallback,
-        title: topicTitle,
-        relatedTopics: ['Black Holes', 'Ancient Egypt', 'Artificial Intelligence', 'Deep Ocean', 'Solar System'],
-        recommendations: [{ title: 'Explore More Topics', type: 'article', description: 'Continue your journey of discovery.' }]
-      };
-      localStorage.setItem(`topic_${topicId}`, JSON.stringify(content));
-      return content;
-    }
-    const generic = {
-      ...generateGenericFallback(topicTitle),
-      relatedTopics: ['Black Holes', 'Ancient Egypt', 'Artificial Intelligence', 'Deep Ocean', 'Solar System'],
-      recommendations: [{ title: 'Explore More Topics', type: 'article', description: 'Continue your journey of discovery.' }]
-    };
-    localStorage.setItem(`topic_${topicId}`, JSON.stringify(generic));
-    return generic;
-  }
-};
+export default fallbackTopics;
