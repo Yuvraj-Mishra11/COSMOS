@@ -1,0 +1,23 @@
+.topic-page {
+  background: #0a0a0a;
+  color: #ffffff;
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.topic-page h1, .topic-page h2, .topic-page h3 {
+  color: #ffffff;
+}
+
+.topic-page p, .topic-page span, .topic-page div {
+  color: #d0d0d8;
+}
+
+.topic-page .muted {
+  color: #888899;
+}
+
+.topic-page .dark {
+  color: #555566;
+}
