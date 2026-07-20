@@ -4,12 +4,12 @@ import StarBackground from '../components/StarBackground';
 import CursorParticles from '../components/CursorParticles';
 
 const topics = [
-  { id: 'black-holes', icon: '🌌', title: 'Black Holes', desc: 'The most mysterious objects in space' },
-  { id: 'ancient-egypt', icon: '🏺', title: 'Ancient Egypt', desc: 'Pyramids, pharaohs, and early civilization' },
-  { id: 'artificial-intelligence', icon: '🤖', title: 'Artificial Intelligence', desc: 'The future of machine learning and networks' },
-  { id: 'deep-ocean', icon: '🌊', title: 'Deep Ocean', desc: 'The unexplored depths of our own planet' },
-  { id: 'solar-system', icon: '🪐', title: 'Solar System', desc: 'Our planetary neighbors and their moons' },
-  { id: 'quantum-physics', icon: '⚛️', title: 'Quantum Physics', desc: 'The bizarre laws governing the subatomic' },
+  { id: 'black-holes', title: 'Black Holes', desc: 'The most mysterious objects in space' },
+  { id: 'ancient-egypt', title: 'Ancient Egypt', desc: 'Pyramids, pharaohs, and early civilization' },
+  { id: 'artificial-intelligence', title: 'Artificial Intelligence', desc: 'The future of machine learning and networks' },
+  { id: 'deep-ocean', title: 'Deep Ocean', desc: 'The unexplored depths of our own planet' },
+  { id: 'solar-system', title: 'Solar System', desc: 'Our planetary neighbors and their moons' },
+  { id: 'quantum-physics', title: 'Quantum Physics', desc: 'The bizarre laws governing the subatomic' },
 ];
 
 const LandingPage = () => {
@@ -276,21 +276,48 @@ const LandingPage = () => {
                 padding: '1.8rem',
                 opacity: mounted ? 1 : 0,
                 transform: mounted ? 'translateY(0)' : 'translateY(20px)',
-                transition: `all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) ${300 + i * 100}ms`
+                transition: mounted ? 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : `all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) ${300 + i * 100}ms`
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.03)';
                 e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
                 e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.05)';
+                const icon = e.currentTarget.querySelector('.topic-icon');
+                if (icon) {
+                  icon.style.background = 'rgba(255,255,255,0.12)';
+                  icon.style.borderColor = 'rgba(255,255,255,0.2)';
+                  icon.style.boxShadow = '0 0 30px rgba(255,255,255,0.05)';
+                }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)';
                 e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)';
                 e.currentTarget.style.boxShadow = 'none';
+                const icon = e.currentTarget.querySelector('.topic-icon');
+                if (icon) {
+                  icon.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))';
+                  icon.style.borderColor = 'rgba(255,255,255,0.06)';
+                  icon.style.boxShadow = 'none';
+                }
               }}
             >
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }} className="grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300">
-                {topic.icon}
+              <div className="topic-icon" style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
+                border: '1px solid rgba(255,255,255,0.06)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+                fontWeight: 300,
+                color: '#ffffff',
+                marginBottom: '0.8rem',
+                transition: 'all 0.4s ease',
+                fontFamily: 'Inter, sans-serif'
+              }}>
+                {topic.title.charAt(0).toUpperCase()}
               </div>
               <h3 style={{
                 fontSize: '1.2rem',

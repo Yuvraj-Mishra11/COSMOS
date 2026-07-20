@@ -193,40 +193,30 @@ const TopicPage = () => {
             padding: '2rem 0 3rem 0',
             borderBottom: '1px solid rgba(255,255,255,0.04)',
             position: 'relative',
-            zIndex: 2
+            zIndex: 2,
+            textAlign: 'center'
           }}>
-            <div style={{
-              width: '72px',
-              height: '72px',
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '2rem',
-              fontWeight: 300,
-              color: '#ffffff',
-              marginBottom: '1.5rem'
-            }}>
-              {topic.title?.charAt(0).toUpperCase() || '?'}
-            </div>
-
+            {/* Title - ALL CAPS, centered */}
             <h1 style={{
-              fontSize: '4.5rem',
+              fontSize: '3.5rem',
               fontWeight: 200,
-              margin: '0 0 0.3rem 0',
-              letterSpacing: '-0.02em',
-              color: '#ffffff'
+              margin: '0 0 0.5rem 0',
+              letterSpacing: '0.15em',
+              color: '#ffffff',
+              textAlign: 'center',
+              textTransform: 'uppercase'
             }}>
               {topic.title}
             </h1>
 
+            {/* Subtitle - centered */}
             <p style={{
               fontSize: '1.1rem',
               color: 'rgba(255,255,255,0.4)',
               fontWeight: 300,
-              letterSpacing: '0.05em'
+              letterSpacing: '0.1em',
+              textAlign: 'center',
+              textTransform: 'uppercase'
             }}>
               {topic.subtitle || 'Explore this topic'}
             </p>
