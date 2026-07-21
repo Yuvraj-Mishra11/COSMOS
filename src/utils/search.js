@@ -4,20 +4,19 @@ const TAVILY_API_KEY = import.meta.env.VITE_TAVILY_API_KEY;
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const GOOGLE_CX = import.meta.env.VITE_GOOGLE_CX;
 
-// Clean text
+// ==================== HELPERS ====================
 const cleanText = (text) => {
   if (!text) return '';
   return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 };
 
-// Get meaningful sentences
-const getSentences = (text, count = 3) => {
+const getSentences = (text, count = 4) => {
   if (!text) return '';
   const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 30);
   return sentences.slice(0, count).join('. ') + '.';
 };
 
-// Search DuckDuckGo
+// ==================== DUCKDUCKGO ====================
 const searchDuckDuckGo = async (query) => {
   try {
     const response = await axios.get('https://api.duckduckgo.com/', {
@@ -31,7 +30,7 @@ const searchDuckDuckGo = async (query) => {
   }
 };
 
-// Search Tavily
+// ==================== TAVILY ====================
 const searchTavily = async (query) => {
   if (!TAVILY_API_KEY) return null;
   try {
@@ -39,13 +38,14 @@ const searchTavily = async (query) => {
       'https://api.tavily.com/search',
       {
         query: query,
-        search_depth: 'basic',
-        max_results: 5,
-        include_answer: true
+        search_depth: 'advanced',
+        max_results: 10,
+        include_answer: true,
+        include_raw_content: true
       },
       {
         headers: { 'Authorization': `Bearer ${TAVILY_API_KEY}` },
-        timeout: 10000
+        timeout: 15000
       }
     );
     return response.data;
@@ -55,12 +55,12 @@ const searchTavily = async (query) => {
   }
 };
 
-// Search Google
+// ==================== GOOGLE ====================
 const searchGoogle = async (query) => {
   if (!GOOGLE_API_KEY || !GOOGLE_CX) return [];
   try {
     const response = await axios.get('https://www.googleapis.com/customsearch/v1', {
-      params: { key: GOOGLE_API_KEY, cx: GOOGLE_CX, q: query, num: 5 },
+      params: { key: GOOGLE_API_KEY, cx: GOOGLE_CX, q: query, num: 10 },
       timeout: 10000
     });
     return response.data.items || [];
@@ -70,21 +70,35 @@ const searchGoogle = async (query) => {
   }
 };
 
-// Parse DuckDuckGo
+// ==================== PARSERS ====================
+// Parse DuckDuckGo - Better extraction
 const parseDuckDuckGo = (data) => {
   let overview = '';
   const concepts = [];
   const facts = [];
   const articles = [];
 
+  // Get clean abstract
   if (data.AbstractText) {
     overview = getSentences(data.AbstractText, 4);
   }
 
+  // Get heading as title fallback
+  if (!overview && data.Heading) {
+    overview = data.Heading;
+  }
+
+  // Process Related Topics - filter out junk
   if (data.RelatedTopics) {
     data.RelatedTopics.forEach(topic => {
       if (topic.Text) {
         const text = cleanText(topic.Text);
+        // Skip if it looks like a social media link or subscriber count
+        if (text.includes('instagram') || text.includes('youtube') || 
+            text.includes('subscriber') || text.includes('followers') ||
+            text.includes('@') || text.includes('http')) {
+          return;
+        }
         const parts = text.split(' - ');
         const title = parts[0]?.trim() || 'Related';
         const description = parts.slice(1).join(' - ').trim() || text;
@@ -101,11 +115,19 @@ const parseDuckDuckGo = (data) => {
     });
   }
 
+  // Process Infobox - clean key facts
   if (data.Infobox) {
     data.Infobox.content.forEach(item => {
       if (item.label && item.value && facts.length < 12) {
         const cleanValue = cleanText(item.value);
-        if (cleanValue.length > 10) facts.push(`${item.label}: ${cleanValue}`);
+        // Skip if value looks like a link or social media
+        if (cleanValue.length > 10 && 
+            !cleanValue.includes('http') && 
+            !cleanValue.includes('@') &&
+            !cleanValue.includes('instagram') &&
+            !cleanValue.includes('youtube')) {
+          facts.push(`${item.label}: ${cleanValue}`);
+        }
       }
     });
   }
@@ -113,7 +135,7 @@ const parseDuckDuckGo = (data) => {
   return { overview, concepts, facts, articles };
 };
 
-// Parse Tavily
+// Parse Tavily - Better extraction
 const parseTavily = (data) => {
   const concepts = [];
   const facts = [];
@@ -123,6 +145,14 @@ const parseTavily = (data) => {
     data.results.forEach(r => {
       const content = cleanText(r.content || r.snippet || '');
       const title = cleanText(r.title || '');
+      
+      // Skip junk content
+      if (content.includes('instagram') || content.includes('youtube') ||
+          content.includes('subscriber') || content.includes('followers') ||
+          content.includes('@') || content.length < 30) {
+        return;
+      }
+      
       if (content.length > 50 && concepts.length < 6) {
         concepts.push({
           name: title.slice(0, 45) || `Concept ${concepts.length + 1}`,
@@ -132,7 +162,9 @@ const parseTavily = (data) => {
       if (content.length > 40) {
         const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 30);
         sentences.slice(0, 2).forEach(s => {
-          if (facts.length < 15) facts.push(s.trim() + '.');
+          if (facts.length < 15 && !s.includes('instagram') && !s.includes('youtube')) {
+            facts.push(s.trim() + '.');
+          }
         });
       }
       if (r.url && articles.length < 6) {
@@ -144,17 +176,27 @@ const parseTavily = (data) => {
   return { concepts, facts, articles };
 };
 
-// Parse Google
+// Parse Google - Better extraction
 const parseGoogle = (items) => {
   const facts = [];
   const articles = [];
   items.forEach(item => {
     const title = cleanText(item.title || '');
     const snippet = cleanText(item.snippet || '');
+    
+    // Skip junk content
+    if (snippet.includes('instagram') || snippet.includes('youtube') ||
+        snippet.includes('subscriber') || snippet.includes('followers') ||
+        snippet.includes('@') || snippet.length < 30) {
+      return;
+    }
+    
     if (snippet.length > 30) {
       const sentences = snippet.split(/[.!?]+/).filter(s => s.trim().length > 30);
       sentences.slice(0, 2).forEach(s => {
-        if (facts.length < 15) facts.push(s.trim() + '.');
+        if (facts.length < 15 && !s.includes('instagram') && !s.includes('youtube')) {
+          facts.push(s.trim() + '.');
+        }
       });
     }
     if (item.link && articles.length < 6) {
@@ -164,14 +206,12 @@ const parseGoogle = (items) => {
   return { facts, articles };
 };
 
-// Main function
+// ==================== MAIN FUNCTION ====================
 export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
   // Check cache
   const cached = localStorage.getItem(`topic_${topicId}`);
   if (cached) {
-    try {
-      return JSON.parse(cached);
-    } catch (e) {}
+    try { return JSON.parse(cached); } catch (e) {}
   }
 
   console.log('Searching for:', topicTitle);
@@ -183,7 +223,7 @@ export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
   let articles = [];
 
   try {
-    // Run all searches
+    // Run all searches in parallel
     const [duckData, tavilyData, googleItems] = await Promise.all([
       searchDuckDuckGo(topicTitle),
       searchTavily(topicTitle),
@@ -194,31 +234,32 @@ export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
     if (duckData) {
       const parsed = parseDuckDuckGo(duckData);
       if (parsed.overview) overview = parsed.overview;
-      parsed.concepts.forEach(c => { if (concepts.length < 6) concepts.push(c); });
-      parsed.facts.forEach(f => { if (facts.length < 10) facts.push(f); });
+      parsed.concepts.forEach(c => { if (concepts.length < 8) concepts.push(c); });
+      parsed.facts.forEach(f => { if (facts.length < 15) facts.push(f); });
       parsed.articles.forEach(a => { if (articles.length < 6) articles.push(a); });
+      console.log('DuckDuckGo:', { concepts: concepts.length, facts: facts.length });
     }
 
     // Process Tavily
     if (tavilyData) {
-      if (tavilyData.answer && !overview) {
-        overview = getSentences(cleanText(tavilyData.answer), 4);
-      }
       const parsed = parseTavily(tavilyData);
-      parsed.concepts.forEach(c => { if (concepts.length < 8) concepts.push(c); });
-      parsed.facts.forEach(f => { if (facts.length < 12) facts.push(f); });
-      parsed.articles.forEach(a => { if (articles.length < 6) articles.push(a); });
+      if (parsed.overview && !overview) overview = parsed.overview;
+      parsed.concepts.forEach(c => { if (concepts.length < 10) concepts.push(c); });
+      parsed.facts.forEach(f => { if (facts.length < 20) facts.push(f); });
+      parsed.articles.forEach(a => { if (articles.length < 8) articles.push(a); });
+      console.log('Tavily:', { concepts: concepts.length, facts: facts.length });
     }
 
     // Process Google
     if (googleItems.length > 0) {
       const parsed = parseGoogle(googleItems);
-      parsed.facts.forEach(f => { if (facts.length < 12) facts.push(f); });
-      parsed.articles.forEach(a => { if (articles.length < 6) articles.push(a); });
+      parsed.facts.forEach(f => { if (facts.length < 20) facts.push(f); });
+      parsed.articles.forEach(a => { if (articles.length < 8) articles.push(a); });
+      console.log('Google:', { facts: facts.length });
     }
 
-    // Ensure we have content
-    if (!overview || overview.length < 30) {
+    // Ensure overview
+    if (!overview || overview.length < 50) {
       overview = `Explore ${topicTitle}. This topic covers important concepts, discoveries, and historical significance.`;
     }
 
@@ -227,7 +268,7 @@ export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
     const seenFacts = new Set();
     facts.forEach(f => {
       const key = f.slice(0, 60);
-      if (!seenFacts.has(key) && uniqueFacts.length < 12 && f.length > 20) {
+      if (!seenFacts.has(key) && uniqueFacts.length < 15 && f.length > 20) {
         seenFacts.add(key);
         uniqueFacts.push(f);
       }
@@ -237,7 +278,8 @@ export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
     if (facts.length === 0) {
       facts = [
         `${topicTitle} is a significant topic.`,
-        `Research on ${topicTitle} continues to evolve.`
+        `Research on ${topicTitle} continues to evolve.`,
+        `Many discoveries have been made about ${topicTitle}.`
       ];
     }
 
@@ -275,13 +317,13 @@ export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
       title: topicTitle,
       icon: '🔍',
       subtitle: 'Researched from DuckDuckGo + Tavily + Google',
-      overview: overview.slice(0, 1200),
+      overview: overview.slice(0, 1500),
       timeline: [],
       concepts: concepts.slice(0, 8).map(c => ({
         name: c.name.slice(0, 50),
-        description: c.description.slice(0, 300)
+        description: c.description.slice(0, 350)
       })),
-      facts: facts.slice(0, 12),
+      facts: facts.slice(0, 15),
       articles: articles.slice(0, 6),
       relatedTopics: ['Black Holes', 'Ancient Egypt', 'Artificial Intelligence', 'Deep Ocean', 'Solar System'],
       recommendations: [
