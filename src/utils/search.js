@@ -4,7 +4,7 @@ const TAVILY_API_KEY = import.meta.env.VITE_TAVILY_API_KEY;
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const GOOGLE_CX = import.meta.env.VITE_GOOGLE_CX;
 
-// ==================== HELPERS ====================
+// ==================== CLEAN TEXT ====================
 const cleanText = (text) => {
   if (!text) return '';
   return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
@@ -38,10 +38,9 @@ const searchTavily = async (query) => {
       'https://api.tavily.com/search',
       {
         query: query,
-        search_depth: 'advanced',
+        search_depth: 'basic',
         max_results: 10,
-        include_answer: true,
-        include_raw_content: true
+        include_answer: true
       },
       {
         headers: { 'Authorization': `Bearer ${TAVILY_API_KEY}` },
@@ -71,63 +70,41 @@ const searchGoogle = async (query) => {
 };
 
 // ==================== PARSERS ====================
-// Parse DuckDuckGo - Better extraction
 const parseDuckDuckGo = (data) => {
   let overview = '';
   const concepts = [];
   const facts = [];
   const articles = [];
 
-  // Get clean abstract
   if (data.AbstractText) {
-    overview = getSentences(data.AbstractText, 4);
+    overview = getSentences(data.AbstractText, 5);
   }
 
-  // Get heading as title fallback
-  if (!overview && data.Heading) {
-    overview = data.Heading;
-  }
-
-  // Process Related Topics - filter out junk
   if (data.RelatedTopics) {
     data.RelatedTopics.forEach(topic => {
       if (topic.Text) {
         const text = cleanText(topic.Text);
-        // Skip if it looks like a social media link or subscriber count
-        if (text.includes('instagram') || text.includes('youtube') || 
-            text.includes('subscriber') || text.includes('followers') ||
-            text.includes('@') || text.includes('http')) {
-          return;
-        }
         const parts = text.split(' - ');
         const title = parts[0]?.trim() || 'Related';
         const description = parts.slice(1).join(' - ').trim() || text;
-        if (description.length > 30 && concepts.length < 6) {
-          concepts.push({ name: title.slice(0, 45), description: getSentences(description, 2) });
+        if (description.length > 30 && concepts.length < 8) {
+          concepts.push({ name: title.slice(0, 50), description: getSentences(description, 2) });
         }
-        if (text.length > 40 && facts.length < 10) {
+        if (text.length > 40 && facts.length < 15) {
           facts.push(getSentences(text, 1));
         }
         if (topic.url && articles.length < 6) {
-          articles.push({ title: title.slice(0, 60), url: topic.url, source: 'DuckDuckGo' });
+          articles.push({ title: topic.Text?.slice(0, 60) || 'Article', url: topic.url, source: 'DuckDuckGo' });
         }
       }
     });
   }
 
-  // Process Infobox - clean key facts
   if (data.Infobox) {
     data.Infobox.content.forEach(item => {
-      if (item.label && item.value && facts.length < 12) {
+      if (item.label && item.value && facts.length < 15) {
         const cleanValue = cleanText(item.value);
-        // Skip if value looks like a link or social media
-        if (cleanValue.length > 10 && 
-            !cleanValue.includes('http') && 
-            !cleanValue.includes('@') &&
-            !cleanValue.includes('instagram') &&
-            !cleanValue.includes('youtube')) {
-          facts.push(`${item.label}: ${cleanValue}`);
-        }
+        if (cleanValue.length > 10) facts.push(`${item.label}: ${cleanValue}`);
       }
     });
   }
@@ -135,36 +112,31 @@ const parseDuckDuckGo = (data) => {
   return { overview, concepts, facts, articles };
 };
 
-// Parse Tavily - Better extraction
 const parseTavily = (data) => {
   const concepts = [];
   const facts = [];
   const articles = [];
+  let overview = '';
+
+  if (data.answer) {
+    overview = getSentences(cleanText(data.answer), 5);
+  }
 
   if (data.results) {
     data.results.forEach(r => {
       const content = cleanText(r.content || r.snippet || '');
       const title = cleanText(r.title || '');
       
-      // Skip junk content
-      if (content.includes('instagram') || content.includes('youtube') ||
-          content.includes('subscriber') || content.includes('followers') ||
-          content.includes('@') || content.length < 30) {
-        return;
-      }
-      
-      if (content.length > 50 && concepts.length < 6) {
+      if (content.length > 50 && concepts.length < 8) {
         concepts.push({
-          name: title.slice(0, 45) || `Concept ${concepts.length + 1}`,
+          name: title.slice(0, 50) || `Concept ${concepts.length + 1}`,
           description: getSentences(content, 2)
         });
       }
-      if (content.length > 40) {
+      if (content.length > 40 && facts.length < 15) {
         const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 30);
         sentences.slice(0, 2).forEach(s => {
-          if (facts.length < 15 && !s.includes('instagram') && !s.includes('youtube')) {
-            facts.push(s.trim() + '.');
-          }
+          if (facts.length < 15) facts.push(s.trim() + '.');
         });
       }
       if (r.url && articles.length < 6) {
@@ -173,30 +145,19 @@ const parseTavily = (data) => {
     });
   }
 
-  return { concepts, facts, articles };
+  return { overview, concepts, facts, articles };
 };
 
-// Parse Google - Better extraction
 const parseGoogle = (items) => {
   const facts = [];
   const articles = [];
   items.forEach(item => {
     const title = cleanText(item.title || '');
     const snippet = cleanText(item.snippet || '');
-    
-    // Skip junk content
-    if (snippet.includes('instagram') || snippet.includes('youtube') ||
-        snippet.includes('subscriber') || snippet.includes('followers') ||
-        snippet.includes('@') || snippet.length < 30) {
-      return;
-    }
-    
-    if (snippet.length > 30) {
+    if (snippet.length > 40 && facts.length < 15) {
       const sentences = snippet.split(/[.!?]+/).filter(s => s.trim().length > 30);
       sentences.slice(0, 2).forEach(s => {
-        if (facts.length < 15 && !s.includes('instagram') && !s.includes('youtube')) {
-          facts.push(s.trim() + '.');
-        }
+        if (facts.length < 15) facts.push(s.trim() + '.');
       });
     }
     if (item.link && articles.length < 6) {
@@ -214,7 +175,7 @@ export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
     try { return JSON.parse(cached); } catch (e) {}
   }
 
-  console.log('Searching for:', topicTitle);
+  console.log('🔍 Searching for:', topicTitle);
   if (onProgress) onProgress('🔍 Researching...');
 
   let overview = '';
@@ -223,42 +184,42 @@ export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
   let articles = [];
 
   try {
-    // Run all searches in parallel
+    // Run ALL searches in parallel
     const [duckData, tavilyData, googleItems] = await Promise.all([
       searchDuckDuckGo(topicTitle),
       searchTavily(topicTitle),
       searchGoogle(topicTitle)
     ]);
 
-    // Process DuckDuckGo
+    // ===== 1. DUCKDUCKGO =====
     if (duckData) {
       const parsed = parseDuckDuckGo(duckData);
       if (parsed.overview) overview = parsed.overview;
       parsed.concepts.forEach(c => { if (concepts.length < 8) concepts.push(c); });
       parsed.facts.forEach(f => { if (facts.length < 15) facts.push(f); });
       parsed.articles.forEach(a => { if (articles.length < 6) articles.push(a); });
-      console.log('DuckDuckGo:', { concepts: concepts.length, facts: facts.length });
+      console.log('🟣 DuckDuckGo:', { concepts: concepts.length, facts: facts.length });
     }
 
-    // Process Tavily
+    // ===== 2. TAVILY =====
     if (tavilyData) {
       const parsed = parseTavily(tavilyData);
       if (parsed.overview && !overview) overview = parsed.overview;
       parsed.concepts.forEach(c => { if (concepts.length < 10) concepts.push(c); });
       parsed.facts.forEach(f => { if (facts.length < 20) facts.push(f); });
       parsed.articles.forEach(a => { if (articles.length < 8) articles.push(a); });
-      console.log('Tavily:', { concepts: concepts.length, facts: facts.length });
+      console.log('🟢 Tavily:', { concepts: concepts.length, facts: facts.length });
     }
 
-    // Process Google
+    // ===== 3. GOOGLE =====
     if (googleItems.length > 0) {
       const parsed = parseGoogle(googleItems);
       parsed.facts.forEach(f => { if (facts.length < 20) facts.push(f); });
       parsed.articles.forEach(a => { if (articles.length < 8) articles.push(a); });
-      console.log('Google:', { facts: facts.length });
+      console.log('🔴 Google:', { facts: facts.length });
     }
 
-    // Ensure overview
+    // If NO content from ANY provider, use fallback
     if (!overview || overview.length < 50) {
       overview = `Explore ${topicTitle}. This topic covers important concepts, discoveries, and historical significance.`;
     }
@@ -302,17 +263,6 @@ export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
       ];
     }
 
-    // Deduplicate articles
-    const uniqueArticles = [];
-    const seenUrls = new Set();
-    articles.forEach(a => {
-      if (!seenUrls.has(a.url) && uniqueArticles.length < 6) {
-        seenUrls.add(a.url);
-        uniqueArticles.push(a);
-      }
-    });
-    articles = uniqueArticles;
-
     const content = {
       title: topicTitle,
       icon: '🔍',
@@ -333,7 +283,7 @@ export const generateTopicContent = async (topicId, topicTitle, onProgress) => {
 
     localStorage.setItem(`topic_${topicId}`, JSON.stringify(content));
     if (onProgress) onProgress('✅ Research complete!');
-    console.log('✅ Content generated with', facts.length, 'facts');
+    console.log('✅ Content generated with', facts.length, 'facts from ALL providers');
     return content;
 
   } catch (error) {
